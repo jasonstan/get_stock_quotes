@@ -3,7 +3,7 @@ Program to get regular updates on stock price for largest companies in the
 world by market cap, and to store this data in a postgres database.
 
 Author: Jason Stanley
-Last modified: 09 Oct 2016
+Last modified: 11 Oct 2016
 
 ----
 
@@ -26,75 +26,45 @@ sample stock ('AAPL'):
 
 
 # import necessary libraries
+import pandas as pd
 import psycopg2 as pg
 import time
 
 
-def create_company(cur):
-    '''
-    Create company table to store slowly changing fields for each company
-    '''
+def get_company_data(s):
+    '''For given stock symbol, gets company name'''
+        
+    from bs4 import BeautifulSoup
+    import requests
 
-    q = """
-        CREATE TABLE IF NOT EXISTS company (\
-            id serial not null, \
-            created_at timestamp not null default now(), \
-            stock_symbol varchar(10) default null, \
-            company_name varchar(20) default null, \
-            index varchar (20) default null);
-        """
-
-    cur.execute(q)
+    head = {"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36"}
+    html = requests.get('https://www.google.com/finance?q={0}'.format(s), headers=head).content
+    soup = BeautifulSoup(html, "html.parser")
+    name = soup.find("div", class_="appbar-snippet-primary").text
+    index = soup.find("div", class_="appbar-snippet-secondary").text
+    index = index.split(":")[0][1:]
+    return name, index
 
 
-def create_stock_prices(cur):
-    '''
-    Create stock_prices table to store regular updates on stock price
-    '''
-    
-    q = """
-        CREATE TABLE IF NOT EXISTS stock_prices (\
-            id serial not null,
-            created_at timestamp not null default now(), \
-            stock_symbol varchar(10) default null, \
-            last_traded_price money default null, \
-            last_trade_datetime timestamp default null, \
-            index varchar (20) default null);
-        """
-
-    cur.execute(q)
-
-
-def create_table_structure():
-    '''
-    Assemble table structure of database
-    '''
-
-    conn = pg.connect(database='stocks')
-    cur = conn.cursor()
-    
-    create_stock_prices(cur)    # stock_prices table
-    create_company(cur)         # company table
-    
-    conn.commit()
-    conn.close()
-
-
-def insert_company_data(s):
-    '''
-    Given stock symbol, create record in db for high-level company info
-    '''
+def insert_company_data(s, name, index):
+    '''Given stock symbol, create record in db for high-level company info'''
 
     conn = pg.connect(database='stocks')
     cur = conn.cursor()
 
-    q = """
-    INSERT INTO company (stock_symbol, company_name) VALUES (%s,%s)
-    """
+    q = "INSERT INTO company (stock_symbol, company_name, index) VALUES (%s,%s, %s)"
 
-    cur.execute(q, [s, s+s])  
+    cur.execute(q, [s, name, index])  
     conn.commit()
     conn.close()
+
+
+def get_companies_data(stocks):
+    '''For each stock in list, get company data and insert into db'''
+
+    for stock in stocks:
+        name, index = get_company_data(stock)
+        insert_company_data(stock, name, index)
 
 
 def get_stock_price(s):
@@ -147,12 +117,10 @@ def get_stock_data(stocks, periods, delay):
     stock price information at (delay) inrterval
     '''
 
-    # create table structure if not exists
-    create_table_structure()
-    insert_company_data('AAPL')
-
+    # get stock price data at specified intervals for specified # of periods
     i = 1
-    while i <= periods:
+    #while i <= periods:
+    while True:
         print(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), "loop:", i)
         for stock in stocks:
             print("processing", stock)
@@ -160,14 +128,22 @@ def get_stock_data(stocks, periods, delay):
             insert_stock_price(s, last_traded_price, last_trade_datetime, index)
         i += 1
         time.sleep(delay)
+    
+
+def build_stocks_db(stocks, periods, delay):
+    '''Executes major functions to fill database'''
+
+    get_companies_data(stocks)
+    get_stock_data(stocks, periods, delay)
+    
 
 
 # key input variables
 stocks = ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'FB', 'XOM', 'BRK-A', 'JNJ', 'BABA', 
           'NYSE:GE', 'CHL']    # stocks of interest
 periods = 2     # number of loops to perform
-delay = 5.0     # seconds
+delay = 60*60     # one hour
 
 
 # execute
-get_stock_data(stocks, periods, delay)
+build_stocks_db(stocks, periods, delay)
