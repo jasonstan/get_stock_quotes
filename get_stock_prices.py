@@ -32,7 +32,10 @@ import time
 
 
 def get_company_data(s):
-    """For given stock symbol, get company name."""
+    """
+    For given stock symbol, return two str variables: 1) company name, and 
+    2) index on which stock is traded.
+    """
 
     from bs4 import BeautifulSoup
     import requests
@@ -47,7 +50,10 @@ def get_company_data(s):
 
 
 def insert_company_data(s, name, index):
-    """For given stock symbol, create record in db for high-level company info."""
+    """
+    For given stock symbol, create record in company table of db containing
+    stock symble, company name, and index on which stock is traded.
+    """
 
     conn = pg.connect(database='stocks')
     cur = conn.cursor()
@@ -69,8 +75,8 @@ def get_companies_data(stocks):
 
 def get_stock_price(s):
     """
-    For given stock symbol, get last traded price, last trade datetime,
-    index on which stock is traded.
+    For given stock symbol, return four variables: stock symbol, 
+    last traded price, last trade datetime, and index on which stock is traded.
     """
 
     from googlefinance import getQuotes
