@@ -131,8 +131,7 @@ def get_stock_data(stocks, periods, delay):
         print(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), "loop:", i)
         for stock in stocks:
             print("processing", stock)
-            s, last_traded_price, last_trade_datetime, index = 
-                get_stock_price(stock)
+            s, last_traded_price, last_trade_datetime, index = get_stock_price(stock)
             insert_stock_price(s, last_traded_price, last_trade_datetime, index)
         i += 1
         time.sleep(delay)
@@ -154,4 +153,5 @@ delay = 60*60     # one hour
 
 
 # execute
-build_stocks_db(stocks, periods, delay)
+#build_stocks_db(stocks, periods, delay)
+get_stock_price('CHL')
