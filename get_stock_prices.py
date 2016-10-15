@@ -1,14 +1,14 @@
 """
-Program to get regular updates on stock price for largest companies in the
-world by market cap, and to store this data in a postgres database.
+Program to get regular updates on stock price for largest companies in 
+the world by market cap, and to store this data in a postgres database.
 
 Author: Jason Stanley
 Last modified: 11 Oct 2016
 
 ----
 
-googlefinance module's getQuote function procudes the following output for 
-sample stock ('AAPL'):
+googlefinance module's getQuote function procudes the following output 
+for sample stock ('AAPL'):
 
 [
   {
@@ -33,8 +33,8 @@ import time
 
 def get_company_data(s):
     """
-    For given stock symbol, return two str variables: 1) company name, and 
-    2) index on which stock is traded.
+    For given stock symbol, return two str variables: 1) company name, 
+    and 2) index on which stock is traded.
     """
 
     from bs4 import BeautifulSoup
@@ -54,8 +54,9 @@ def get_company_data(s):
 
 def insert_company_data(s, name, index):
     """
-    For given stock symbol, create record in company table of db containing
-    stock symble, company name, and index on which stock is traded.
+    For given stock symbol, create record in company table of db 
+    containing stock symble, company name, and index on which stock is 
+    traded.
     """
 
     conn = pg.connect(database='stocks')
@@ -82,7 +83,8 @@ def get_companies_data(stocks):
 def get_stock_price(s):
     """
     For given stock symbol, return four variables: stock symbol, 
-    last traded price, last trade datetime, and index on which stock is traded.
+    last traded price, last trade datetime, and index on which stock is 
+    traded.
     """
 
     from googlefinance import getQuotes
