@@ -146,12 +146,12 @@ def build_stocks_db(stocks, periods, delay):
 
 
 # key input variables
-stocks = ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'FB', 'XOM', 'BRK-A', 'JNJ', 'BABA', 
-          'NYSE:GE', 'CHL']    # stocks of interest
-periods = 2     # number of loops to perform
-delay = 60*60     # one hour
+stocks = ['NASDAQ:AAPL', 'NASDAQ:GOOGL', 'NASDAQ:MSFT', 'NASDAQ:AMZN', 
+          'NASDAQ:FB', 'NYSE:XOM', 'NYSE:BRK.A', 'NYSE:JNJ', 'NYSE:BABA', 
+          'NYSE:GE', 'NYSE:CHL']    # stocks of interest
+periods = 1       # number of loops to perform
+delay = 60*60     # delay between stock quote updates = one hour
 
 
 # execute
-#build_stocks_db(stocks, periods, delay)
-get_stock_price('CHL')
+build_stocks_db(stocks, periods, delay)
