@@ -36,8 +36,8 @@ from googlefinance import getQuotes
 
 def get_company_data(s):
     """
-    For given stock symbol, return dictionary containing company name 
-    and index on which stock is traded.
+    For given stock, return dictionary containing company name and index 
+    on which stock is traded.
     """
 
     # specify user agent to facilitate scraping
@@ -62,9 +62,7 @@ def get_company_data(s):
 
 
 def insert_company_data(company_dict):
-    """
-    Insert general company data into company table of db.
-    """
+    """Insert general company data into database."""
 
     conn = pg.connect(database='stocks')
     cur = conn.cursor()
@@ -94,12 +92,10 @@ def get_companies_data(stocks):
 
 def get_stock_price(s):
     """
-    For given stock symbol, return four variables: stock symbol, 
-    last traded price, last trade datetime, and index on which stock is 
-    traded.
+    For given stock, return dictionary containing stock symbol, last 
+    traded price, last trade datetime, and index on which stock is traded.
     """
 
-    # create dict for stock info, fill with relevant data
     stock_dict = {}
     stock_dict["stock_symbol"] = s
     stock_dict["last_traded_price"] = getQuotes(s)[0]['LastTradePrice']
@@ -167,12 +163,12 @@ def build_stocks_db(stocks, periods, delay):
 
 
 # key input variables
-stocks = ['NASDAQ:AAPL', 'NASDAQ:GOOGL', 'NASDAQ:MSFT', 'NASDAQ:AMZN', 
+STOCKS = ['NASDAQ:AAPL', 'NASDAQ:GOOGL', 'NASDAQ:MSFT', 'NASDAQ:AMZN', 
           'NASDAQ:FB', 'NYSE:XOM', 'NYSE:BRK.A', 'NYSE:JNJ', 'NYSE:BABA', 
-          'NYSE:GE', 'NYSE:CHL']    # stocks of interest
-periods = 1       # number of loops to perform
-delay = 0         # delay between stock quote updates in seconds
+          'NYSE:GE', 'NYSE:CHL']
+NUM_QUOTES = 1              # number of loops to perform
+DELAY_BETWEEN_QUOTES = 0    # delay between stock quote updates in seconds
 
 
 # execute
-build_stocks_db(stocks, periods, delay)
+build_stocks_db(STOCKS, NUM_QUOTES, DELAY_BETWEEN_QUOTES)
