@@ -32,8 +32,8 @@ import time
 
 
 def get_company_data(s):
-    '''For given stock symbol, gets company name'''
-        
+    """For given stock symbol, get company name."""
+
     from bs4 import BeautifulSoup
     import requests
 
@@ -47,7 +47,7 @@ def get_company_data(s):
 
 
 def insert_company_data(s, name, index):
-    '''Given stock symbol, create record in db for high-level company info'''
+    """For given stock symbol, create record in db for high-level company info."""
 
     conn = pg.connect(database='stocks')
     cur = conn.cursor()
@@ -60,7 +60,7 @@ def insert_company_data(s, name, index):
 
 
 def get_companies_data(stocks):
-    '''For each stock in list, get company data and insert into db'''
+    """For each stock in list, get company data and insert into db."""
 
     for stock in stocks:
         name, index = get_company_data(stock)
@@ -68,10 +68,10 @@ def get_companies_data(stocks):
 
 
 def get_stock_price(s):
-    '''
+    """
     For given stock symbol, get last traded price, last trade datetime,
-    index on which stock is traded
-    '''
+    index on which stock is traded.
+    """
 
     from googlefinance import getQuotes
     import json
@@ -84,10 +84,7 @@ def get_stock_price(s):
 
 
 def insert_stock_price(s, last_traded_price, last_trade_datetime, index):
-    '''
-    Given stock symbol and data on last traded price and date,
-    insert into database
-    '''
+    """Insert stock data into database."""
 
     conn = pg.connect(database='stocks')
     cur = conn.cursor()
@@ -112,15 +109,13 @@ def insert_stock_price(s, last_traded_price, last_trade_datetime, index):
 
 
 def get_stock_data(stocks, periods, delay):
-    '''
-    For (periods) loops and (stocks) list of stocks, collects and stores key 
-    stock price information at (delay) inrterval
-    '''
+    """
+    For N periods separated by delay of duration X, get stock quotes and 
+    insert in db.
+    """
 
-    # get stock price data at specified intervals for specified # of periods
     i = 1
-    #while i <= periods:
-    while True:
+    while i <= periods:
         print(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), "loop:", i)
         for stock in stocks:
             print("processing", stock)
@@ -131,7 +126,7 @@ def get_stock_data(stocks, periods, delay):
     
 
 def build_stocks_db(stocks, periods, delay):
-    '''Executes major functions to fill database'''
+    """Execute major functions to fill database."""
 
     get_companies_data(stocks)
     get_stock_data(stocks, periods, delay)
