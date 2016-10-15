@@ -3,7 +3,7 @@ Program to get regular updates on stock price for largest companies in
 the world by market cap, and to store this data in a postgres database.
 
 Author: Jason Stanley
-Last modified: 11 Oct 2016
+Last modified: 15 Oct 2016
 
 ----
 
@@ -24,11 +24,14 @@ for sample stock ('AAPL'):
 ]
 """
 
-
 # import necessary libraries
 import pandas as pd
 import psycopg2 as pg
 import time
+import requests
+import json
+from bs4 import BeautifulSoup
+from googlefinance import getQuotes
 
 
 def get_company_data(s):
@@ -36,9 +39,6 @@ def get_company_data(s):
     For given stock symbol, return dictionary containing company name 
     and index on which stock is traded.
     """
-
-    from bs4 import BeautifulSoup
-    import requests
 
     # specify user agent to facilitate scraping
     head = {"User-Agent":("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
@@ -98,9 +98,6 @@ def get_stock_price(s):
     last traded price, last trade datetime, and index on which stock is 
     traded.
     """
-
-    from googlefinance import getQuotes
-    import json
 
     # create dict for stock info, fill with relevant data
     stock_dict = {}
