@@ -40,8 +40,11 @@ def get_company_data(s):
     from bs4 import BeautifulSoup
     import requests
 
-    head = {"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36"}
-    html = requests.get('https://www.google.com/finance?q={0}'.format(s), headers=head).content
+    head = {"User-Agent":("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                          "(KHTML, like Gecko) Chrome/51.0.2704.103 "
+                          "Safari/537.36")}
+    html = requests.get('https://www.google.com/finance?q={0}'.format(s), 
+                        headers=head).content
     soup = BeautifulSoup(html, "html.parser")
     name = soup.find("div", class_="appbar-snippet-primary").text
     index = soup.find("div", class_="appbar-snippet-secondary").text
@@ -58,7 +61,10 @@ def insert_company_data(s, name, index):
     conn = pg.connect(database='stocks')
     cur = conn.cursor()
 
-    q = "INSERT INTO company (stock_symbol, company_name, index) VALUES (%s,%s, %s)"
+    q = """
+        INSERT INTO company (stock_symbol, company_name, index) 
+        VALUES (%s,%s, %s)
+        """
 
     cur.execute(q, [s, name, index])  
     conn.commit()
@@ -96,11 +102,11 @@ def insert_stock_price(s, last_traded_price, last_trade_datetime, index):
     cur = conn.cursor()
 
     q = """
-    INSERT INTO stock_prices (
-        stock_symbol, 
-        last_traded_price, 
-        last_trade_datetime, 
-        index
+        INSERT INTO stock_prices (
+            stock_symbol, 
+            last_traded_price, 
+            last_trade_datetime, 
+            index
         ) SELECT %s,%s,%s,%s WHERE NOT EXISTS (
                       SELECT *
                         FROM stock_prices
@@ -125,7 +131,8 @@ def get_stock_data(stocks, periods, delay):
         print(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), "loop:", i)
         for stock in stocks:
             print("processing", stock)
-            s, last_traded_price, last_trade_datetime, index = get_stock_price(stock)
+            s, last_traded_price, last_trade_datetime, index = 
+                get_stock_price(stock)
             insert_stock_price(s, last_traded_price, last_trade_datetime, index)
         i += 1
         time.sleep(delay)
