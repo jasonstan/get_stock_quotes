@@ -33,30 +33,37 @@ import time
 
 def get_company_data(s):
     """
-    For given stock symbol, return two str variables: 1) company name, 
-    and 2) index on which stock is traded.
+    For given stock symbol, return dictionary containing company name 
+    and index on which stock is traded.
     """
 
     from bs4 import BeautifulSoup
     import requests
 
+    # specify user agent to facilitate scraping
     head = {"User-Agent":("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
                           "(KHTML, like Gecko) Chrome/51.0.2704.103 "
                           "Safari/537.36")}
+    
+    # scrape and parse
     html = requests.get('https://www.google.com/finance?q={0}'.format(s), 
                         headers=head).content
     soup = BeautifulSoup(html, "html.parser")
-    name = soup.find("div", class_="appbar-snippet-primary").text
-    index = soup.find("div", class_="appbar-snippet-secondary").text
-    index = index.split(":")[0][1:]
-    return name, index
+    
+    # create company dict and fill with relevant data
+    company_dict = {}
+    company_dict['stock_symbol'] = s
+    company_dict['name'] = soup.find("div", 
+        class_="appbar-snippet-primary").text
+    company_dict['index'] = soup.find("div", 
+        class_="appbar-snippet-secondary").text.split(":")[0][1:]
+
+    return company_dict
 
 
-def insert_company_data(s, name, index):
+def insert_company_data(company_dict):
     """
-    For given stock symbol, create record in company table of db 
-    containing stock symble, company name, and index on which stock is 
-    traded.
+    Insert general company data into company table of db.
     """
 
     conn = pg.connect(database='stocks')
@@ -67,7 +74,12 @@ def insert_company_data(s, name, index):
         VALUES (%s,%s, %s)
         """
 
-    cur.execute(q, [s, name, index])  
+    cur.execute(q, [
+        company_dict['stock_symbol'],
+        company_dict['name'],
+        company_dict['index']
+        ]
+    )  
     conn.commit()
     conn.close()
 
@@ -76,8 +88,8 @@ def get_companies_data(stocks):
     """For each stock in list, get company data and insert into db."""
 
     for stock in stocks:
-        name, index = get_company_data(stock)
-        insert_company_data(stock, name, index)
+        print("retrieving company data for", stock)
+        insert_company_data(get_company_data(stock))
 
 
 def get_stock_price(s):
@@ -90,14 +102,17 @@ def get_stock_price(s):
     from googlefinance import getQuotes
     import json
 
-    last_traded_price = getQuotes(s)[0]['LastTradePrice']
-    last_trade_datetime = getQuotes(s)[0]['LastTradeDateTime']
-    index = getQuotes(s)[0]['Index']
+    # create dict for stock info, fill with relevant data
+    stock_dict = {}
+    stock_dict["stock_symbol"] = s
+    stock_dict["last_traded_price"] = getQuotes(s)[0]['LastTradePrice']
+    stock_dict["last_trade_datetime"] = getQuotes(s)[0]['LastTradeDateTime']
+    stock_dict["index"] = getQuotes(s)[0]['Index']
 
-    return s, last_traded_price, last_trade_datetime, index
+    return stock_dict
 
 
-def insert_stock_price(s, last_traded_price, last_trade_datetime, index):
+def insert_stock_price(stock_dict):
     """Insert stock data into database."""
 
     conn = pg.connect(database='stocks')
@@ -116,8 +131,15 @@ def insert_stock_price(s, last_traded_price, last_trade_datetime, index):
                          AND last_trade_datetime = (%s));
     """
 
-    cur.execute(q, [s, last_traded_price, last_trade_datetime, index,
-                    s, last_trade_datetime])  
+    cur.execute(q, [
+        stock_dict["stock_symbol"],
+        stock_dict["last_traded_price"],
+        stock_dict["last_trade_datetime"],
+        stock_dict["index"],
+        stock_dict["stock_symbol"],
+        stock_dict["last_trade_datetime"]
+        ]
+    )  
     conn.commit()
     conn.close()
 
@@ -130,11 +152,11 @@ def get_stock_data(stocks, periods, delay):
 
     i = 1
     while i <= periods:
-        print(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), "loop:", i)
+        print(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), 
+              "commencing quote loop:", i)
         for stock in stocks:
-            print("processing", stock)
-            s, last_traded_price, last_trade_datetime, index = get_stock_price(stock)
-            insert_stock_price(s, last_traded_price, last_trade_datetime, index)
+            print("retrieving quote for", stock)
+            insert_stock_price(get_stock_price(stock))
         i += 1
         time.sleep(delay)
     
@@ -152,7 +174,7 @@ stocks = ['NASDAQ:AAPL', 'NASDAQ:GOOGL', 'NASDAQ:MSFT', 'NASDAQ:AMZN',
           'NASDAQ:FB', 'NYSE:XOM', 'NYSE:BRK.A', 'NYSE:JNJ', 'NYSE:BABA', 
           'NYSE:GE', 'NYSE:CHL']    # stocks of interest
 periods = 1       # number of loops to perform
-delay = 60*60     # delay between stock quote updates = one hour
+delay = 0         # delay between stock quote updates in seconds
 
 
 # execute
