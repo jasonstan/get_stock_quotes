@@ -51,12 +51,12 @@ def get_company_data(s):
     soup = BeautifulSoup(html, "html.parser")
     
     # create company dict and fill with relevant data
-    company_dict = {}
-    company_dict['stock_symbol'] = s
-    company_dict['name'] = soup.find("div", 
-        class_="appbar-snippet-primary").text
-    company_dict['index'] = soup.find("div", 
-        class_="appbar-snippet-secondary").text.split(":")[0][1:]
+    company_dict = {
+        'stock_symbol': s,
+        'name': soup.find("div", class_="appbar-snippet-primary").text,
+        'index': (soup.find("div", class_="appbar-snippet-secondary").
+            text.split(":")[0][1:])
+    }
 
     return company_dict
 
@@ -96,11 +96,11 @@ def get_stock_price(s):
     traded price, last trade datetime, and index on which stock is traded.
     """
 
-    stock_dict = {}
-    stock_dict["stock_symbol"] = s
-    stock_dict["last_traded_price"] = getQuotes(s)[0]['LastTradePrice']
-    stock_dict["last_trade_datetime"] = getQuotes(s)[0]['LastTradeDateTime']
-    stock_dict["index"] = getQuotes(s)[0]['Index']
+    stock_dict = {
+        'stock_symbol': s,
+        'last_traded_price': getQuotes(s)[0]['LastTradePrice'],
+        'last_trade_datetime': getQuotes(s)[0]['LastTradeDateTime']
+    }
 
     return stock_dict
 
@@ -115,9 +115,8 @@ def insert_stock_price(stock_dict):
         INSERT INTO stock_prices (
             stock_symbol, 
             last_traded_price, 
-            last_trade_datetime, 
-            index
-        ) SELECT %s,%s,%s,%s WHERE NOT EXISTS (
+            last_trade_datetime
+        ) SELECT %s,%s,%s WHERE NOT EXISTS (
                       SELECT *
                         FROM stock_prices
                        WHERE stock_symbol = (%s)
@@ -128,7 +127,6 @@ def insert_stock_price(stock_dict):
         stock_dict["stock_symbol"],
         stock_dict["last_traded_price"],
         stock_dict["last_trade_datetime"],
-        stock_dict["index"],
         stock_dict["stock_symbol"],
         stock_dict["last_trade_datetime"]
         ]
