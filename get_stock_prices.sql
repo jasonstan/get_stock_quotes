@@ -19,5 +19,4 @@ CREATE TABLE stock_prices(
     stock_symbol varchar(20) default null,
     last_traded_price money default null,
     last_trade_datetime timestamp default null
-    --index varchar (20) default null
 );
